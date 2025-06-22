@@ -1,0 +1,15 @@
+# general file patterns to ignore
+*.csv
+*.txt
+*.png
+*.pwm
+*.npy
+*.pdf
+*.gpr
+*.Identifier
+*.pyc
+*.tdt
+*.zip
+*.gz
+
+data
