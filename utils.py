@@ -2,7 +2,10 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import linregress
+from tqdm import tqdm
 from os.path import split, join
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib.ticker import FuncFormatter
 
 COLUMNS = ['Block', 'Column', 'Row', 'Name', 'ID', 'Flags']
 
@@ -100,27 +103,153 @@ def masliner(path1, path2, f1, f2, ll=200, lh=40_000, path_result=None):
     with open(path_txt, 'w') as file:
         file.write(s)
 
-def normalize(path, path_fasta, f='Adj', radius=7):
+# Custom formatter: convert to thousands with 'k'
+def k_formatter(x, pos):
+    return f'{int(x/1000)}k'
 
+def normalize(path, path_fasta, f='Adj', radius=7, custom_mask=True, path_result=None):
+
+    # Set path_result directory tail as the one of path1 by default
+    if path_result == None:
+        path_result = split(path1)[0]
+    path_csv = join(path_result, 'normalize.csv')
+    path_comb = join(path_result, 'combinatorial.txt')
+    path_png = join(path_result, 'normalize.png')
+    path_txt = join(path_result, 'normalize.txt')
+
+    # Get data
     if path[-4:] == '.gpr':
         df = read_gpr(path, f)
     else:
         df = pd.read_csv(path, index_col=0)
     
+    column = df['Column'].values
+    row = df['Row'].values
+    y = df[f].values
+    mask_flags = (df['Flags'] > -100).values    
+    col_max, row_max = np.max(column), np.max(row)
+
+    # Check reshaped column is in the tile format of [[1, 2, 3, ...], [1, 2, 3, ...], ...] = np.tile(np.arange(col_max) + 1, (row_max, 1))
+    assert np.all(column.reshape(row_max, col_max) == np.tile(np.arange(col_max) + 1, (row_max, 1)))
+
+    # Check reshaped row is in the repeated format of [[1, 1, 1, ...], [2, 2, 2, ...], ...] = np.tile(np.arange(row_max) + 1, (col_max, 1)).T (similar to the column format but transposed)
+    assert np.all(row.reshape(row_max, col_max) == np.tile(np.arange(row_max) + 1, (col_max, 1)).T)   
+    
     # Merge df with fasta sequences (nan for rows with no correspondings in fasta)
     fasta = read_fasta(path_fasta)
     df = pd.merge(df, fasta, how='left', on='ID')
-
+    mask_seq = ~ df['Sequence'].isna().values
+    
+    # Set intensity and mask in a 2-dimensional format of the array
+    y_arr = y.reshape(row_max, col_max)
+    mask_arr = (mask_seq * mask_flags * custom_mask).reshape(row_max, col_max)
+    
     # Set boundaries for moving window
-    df['Top'] = df['Row'] - radius
-    df['Bottom'] = df['Row'] + radius
-    df['Left'] = df['Column'] - radius
-    df['Right'] = df['Column'] + radius
+    top = row - radius
+    bottom = row + radius
+    left = column - radius
+    right = column + radius
 
-    # Adjust 'out-of-boundaris' windows
-    # mask_no_seq = df['Sequence'].isna()
-    print(df.iloc[:20])
+    top_adj = top.copy()
+    bottom_adj = bottom.copy()
+    left_adj = left.copy()
+    right_adj = right.copy()
 
+    # Adjust deviation from array top
+    con = top < 1
+    top_adj = np.where(con, 1, top_adj)
+    bottom_adj = np.where(con, 1 + 2 * radius, bottom_adj)
+
+    # Adjust deviation from array bottom
+    con = bottom > row_max
+    top_adj = np.where(con, row_max - 2 * radius, top_adj)
+    bottom_adj = np.where(con, row_max, bottom_adj)
+
+    # Adjust deviation from array left
+    con = left < 1
+    left_adj = np.where(con, 1, left_adj)
+    right_adj = np.where(con, 1 + 2 * radius, right_adj)
+
+    # Adjust deviation from array right
+    con = right > col_max
+    left_adj = np.where(con, col_max - 2 * radius, left_adj)
+    right_adj = np.where(con, col_max, right_adj)
+
+    df['Top'] = top_adj
+    df['Bottom'] = bottom_adj
+    df['Left'] = left_adj
+    df['Right'] = right_adj
+
+    # Normalize
+    median_global = np.median(y)
+    median_local = np.empty(len(df))
+    size = np.empty(len(df))
+    '''
+    print('Running window')
+    for i in tqdm(range(len(df))):
+    
+        t, b, l, r = df[['Top', 'Bottom', 'Left', 'Right']].iloc[i].values
+        y_window = y_arr[t - 1: b, l - 1: r].flatten()
+        mask_window = mask_arr[t - 1: b, l - 1: r].flatten()
+        median_local[i] = np.median(y_window[mask_window])
+        size[i] = np.sum(mask_window)
+
+    # If a probe has a window greater than the half of the maximum, has a sequence and appropriate flag, use normalized value, otherwise, use original
+    mask_norm = (size > (1 + 2 * radius) ** 2 / 2) * (mask_seq) * (mask_flags)
+    norm = np.where(mask_norm, y * median_global / median_local, y)
+    
+    # If probe is flagged or with no sequence, assign nan
+    norm = np.where((~ mask_flags) + (~ mask_seq), np.nan, norm)
+
+    # Save result
+    df['Local window median'] = median_local
+    df['Window size'] = size
+    df['Norm'] = norm
+    df.to_csv(path_csv)
+    '''
+    df = pd.read_csv(path_csv)
+
+    df_comb = df[['Sequence', 'Norm']]
+    df_comb = df_comb[~ df_comb['Norm'].isna()]
+    df_comb.sort_values('Norm', ascending=False, inplace=True)
+    df_comb.to_csv(path_comb, header=False, index=False, sep='\t')
+
+    # Plots result
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+    arrays = [y_arr, df['Norm'].values.reshape(row_max, col_max), mask_arr]
+    titles = [f, 'Norm', 'Norm mask (binary)']
+
+    for i, ax, arr, title in zip(range(3), axes, arrays, titles):
+        im = ax.matshow(arr)
+        ax.set_title(title)
+
+        if i < 2:
+            
+            # Create a divider for each axis
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="5%", pad=0.05)
+            cbar = fig.colorbar(im, cax=cax)
+            cbar.ax.yaxis.set_major_formatter(FuncFormatter(k_formatter))
+
+    plt.tight_layout()
+    plt.savefig(path_png)
+
+    # Save result log
+    s = ''
+    s += '# Normalize result\n\n'
+    s += '## Input information\n\n'
+    s += f'Data path = {path}\n'
+    s += f'Fasta path = {path_fasta}\n'
+    s += f'f = {f}\n'
+    s += f'Radius = {radius}\n\n'
+    s += '## Output information\n\n'
+    s += f'Normalize result path = {path_csv}\n'
+    s += f'Combinatorial path = {path_comb}\n'
+    s += f'Normalize figure path = {path_png}\n'
+    s += f'Normalize log path = {path_txt}\n\n'
+    with open(path_txt, 'w') as file:
+        file.write(s)
+    
 path1 = 'data/488nm_800_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr'
 path2 = 'data/488nm_1000_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr'
 # masliner(path1, path2, 'F488 Median', 'F488 Median')
