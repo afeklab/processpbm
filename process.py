@@ -3,8 +3,8 @@ from utils import *
 path1 = 'data/488nm_800_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr'
 path2 = 'data/488nm_1000_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr'
 path_fasta = 'data/086902_D_Fasta_20220417.txt'
-f1 = '488 Median'
-f2 = '488 Median'
+f1 = 'F488 Median'
+f2 = 'F488 Median'
 path_result = None
 ll = 200
 lh = 40_000
@@ -59,7 +59,7 @@ s += f'll = {ll}\n'
 s += f'lh = {lh}\n\n'
 s += f'Fasta path = {path_fasta}\n'
 s += f'Radius = {radius}\n\n'
-s += '## Linear regression information\n\n'
+s += '# Linear regression information\n\n'
 s += f'Number of total probes = {len(y1)}\n'
 s += f'Number of probes used for regression = {reg_num}\n'
 s += f'Slope = {slope}\n'

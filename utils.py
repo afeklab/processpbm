@@ -129,6 +129,7 @@ def normalize(df, path_fasta, f='Adj', radius=7, custom_mask=True):
     df['Norm'] = norm
 
     return df
+
 def plot_masliner(y1, y2, adj, path):
     
     fig, axis = plt.subplots()
@@ -153,7 +154,7 @@ def plot_normalize(df, f, path):
     k_formatter = lambda x, pos : f'{int(x/1000)}k' # Custom formatter: convert to thousands with 'k'
     
     # Plots result
-    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
     arrays = [y_arr, norm_arr]
     titles = [f, 'Normalized']
 
