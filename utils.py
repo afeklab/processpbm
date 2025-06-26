@@ -130,7 +130,7 @@ def normalize(df, path_fasta, f='Adj', radius=7, custom_mask=True):
 
     return df
 
-def plot_masliner(y1, y2, adj, path):
+def plot_masliner(y1, y2, adj, path=None):
     
     fig, axis = plt.subplots()
     axis.set_title('Masliner adjusted result')
@@ -139,7 +139,10 @@ def plot_masliner(y1, y2, adj, path):
     axis.set_xlabel('Low-scan fluorescent intensity')
     axis.set_ylabel('High-scan fluorescent intensity')
     axis.legend()
-    plt.savefig(path)
+    if path == None:
+        plt.show()
+    else:    
+        plt.savefig(path)
 
 
 def plot_normalize(df, f, path):
