@@ -46,16 +46,52 @@ def masliner(y1, y2, ll=200, lh=40_000):
     adj = np.where(y2 > lh, linreg_pred, y2)
     return adj, slope, intercept, r, p, se, reg_num
 
-def normalize(df, path_fasta, f='Adj', radius=7, custom_mask=True):
+def constraint_corners(col, row, corners, radius):
 
-    column = df['Column'].values
+    ul, ur, ll, lr = corners # upperleft, upperright, lowerleft, lowerright
+
+    # Create corners conditions as list of mask functions and the corresponding col and row adjsument functions (median_neighborhood in original)    
+    mask_fun_ls = [
+        lambda c, r : c + r < ul + 2 * radius, # Upper left corner
+        lambda c, r : c - r > ur - 2 * radius, # Upper right corner
+        lambda c, r : r - c > ll - 2 * radius, # Lower left corner
+        lambda c, r : r + c > lr - 2 * radius  # Lower right corner
+    ]
+    
+    col_fun_ls = [
+        lambda c, mask: c + mask.astype(int), # Upper left corner
+        lambda c, mask: c - mask.astype(int), # Upper right corner
+        lambda c, mask: c + mask.astype(int), # Lower left corner
+        lambda c, mask: c - mask.astype(int), # Lower right corner
+    ]
+
+    row_fun_ls = [
+        lambda r, mask: r + mask.astype(int), # Upper left corner 
+        lambda r, mask: r + mask.astype(int), # Upper right corner
+        lambda r, mask: r - mask.astype(int), # Lower left corner
+        lambda r, mask: r - mask.astype(int), # Lower right corner
+    ]
+
+    # Apply all conditions and corresponding adjusments    
+    for mask_fun, col_fun, row_fun  in zip(mask_fun_ls, col_fun_ls, row_fun_ls):
+        mask = mask_fun(col, row)
+        while np.sum(mask) > 0:
+            col = col_fun(col, mask) 
+            row = row_fun(row, mask) 
+            mask = mask_fun(col, row) 
+    return col, row
+
+
+def normalize(df, path_fasta, f='Adj', radius=7, custom_mask=True, corners=[]):
+
+    col = df['Column'].values
     row = df['Row'].values
     y = df[f].values
     mask_flags = (df['Flags'] > -100).values    
-    col_max, row_max = np.max(column), np.max(row)
+    col_max, row_max = np.max(col), np.max(row)
 
     # Check reshaped column is in the tile format of [[1, 2, 3, ...], [1, 2, 3, ...], ...] = np.tile(np.arange(col_max) + 1, (row_max, 1))
-    assert np.all(column.reshape(row_max, col_max) == np.tile(np.arange(col_max) + 1, (row_max, 1)))
+    assert np.all(col.reshape(row_max, col_max) == np.tile(np.arange(col_max) + 1, (row_max, 1)))
 
     # Check reshaped row is in the repeated format of [[1, 1, 1, ...], [2, 2, 2, ...], ...] = np.tile(np.arange(row_max) + 1, (col_max, 1)).T (similar to the column format but transposed)
     assert np.all(row.reshape(row_max, col_max) == np.tile(np.arange(row_max) + 1, (col_max, 1)).T)   
@@ -68,44 +104,43 @@ def normalize(df, path_fasta, f='Adj', radius=7, custom_mask=True):
     # Set intensity and mask in a 2-dimensional format of the array
     y_arr = y.reshape(row_max, col_max)
     mask_arr = (mask_seq * mask_flags * custom_mask).reshape(row_max, col_max)
+ 
+    # Adjust the col and row according to corners constraints (for testing only)
+    if len(corners) == 4:
+        col, row = constraint_corners(col, row, corners, radius)    
     
     # Set boundaries for moving window
     top = row - radius
     bottom = row + radius
-    left = column - radius
-    right = column + radius
-
-    top_adj = top.copy()
-    bottom_adj = bottom.copy()
-    left_adj = left.copy()
-    right_adj = right.copy()
+    left = col - radius
+    right = col + radius
 
     # Adjust deviation from array top
-    con = top < 1
-    top_adj = np.where(con, 1, top_adj)
-    bottom_adj = np.where(con, 1 + 2 * radius, bottom_adj)
+    con = row <= radius
+    top = np.where(con, 1, top)
+    bottom = np.where(con, 1 + 2 * radius, bottom)
 
     # Adjust deviation from array bottom
-    con = bottom > row_max
-    top_adj = np.where(con, row_max - 2 * radius, top_adj)
-    bottom_adj = np.where(con, row_max, bottom_adj)
+    con = row > row_max - radius
+    top = np.where(con, row_max - 2 * radius, top)
+    bottom = np.where(con, row_max, bottom)
 
     # Adjust deviation from array left
-    con = left < 1
-    left_adj = np.where(con, 1, left_adj)
-    right_adj = np.where(con, 1 + 2 * radius, right_adj)
+    con = col <= radius
+    left = np.where(con, 1, left)
+    right = np.where(con, 1 + 2 * radius, right)
 
     # Adjust deviation from array right
-    con = right > col_max
-    left_adj = np.where(con, col_max - 2 * radius, left_adj)
-    right_adj = np.where(con, col_max, right_adj)
+    con = col > col_max - radius
+    left = np.where(con, col_max - 2 * radius, left)
+    right = np.where(con, col_max, right)
 
     # Normalize
-    median_global = np.median(y)
+    median_global = np.median(y[mask_flags]) # We have found that in the original, the global median is of the whole array without the flags (it does not really affect the results and would only shift it by some value)
     median_local = np.empty(len(df))
     size = np.empty(len(df))
 
-    for i, t, b, l, r in zip(range(len(df)), top_adj, bottom_adj, left_adj, right_adj):# Note that running an index, take row from the dataframe, convert it to nu,py values at each iteration is slow
+    for i, t, b, l, r in zip(range(len(df)), top, bottom, left, right):# Note that running an index, take row from the dataframe, convert it to nu,py values at each iteration is slow
         
         y_window = y_arr[t - 1: b, l - 1: r].flatten()
         mask_window = mask_arr[t - 1: b, l - 1: r].flatten()
@@ -120,10 +155,10 @@ def normalize(df, path_fasta, f='Adj', radius=7, custom_mask=True):
     norm = np.where((~ mask_flags) + (~ mask_seq), np.nan, norm)
 
     # Save result
-    df['Top'] = top_adj
-    df['Bottom'] = bottom_adj
-    df['Left'] = left_adj
-    df['Right'] = right_adj
+    df['Top'] = top
+    df['Bottom'] = bottom
+    df['Left'] = left
+    df['Right'] = right
     df['Local window median'] = median_local
     df['Window size'] = size
     df['Norm'] = norm
@@ -139,13 +174,15 @@ def plot_masliner(y1, y2, adj, path=None):
     axis.set_xlabel('Low-scan fluorescent intensity')
     axis.set_ylabel('High-scan fluorescent intensity')
     axis.legend()
+    
+    plt.tight_layout()
     if path == None:
         plt.show()
     else:    
         plt.savefig(path)
 
 
-def plot_normalize(df, f, path):
+def plot_normalize(df, f, path=None):
     
     column = df['Column'].values
     row = df['Row'].values
@@ -172,7 +209,12 @@ def plot_normalize(df, f, path):
         cbar.ax.yaxis.set_major_formatter(FuncFormatter(k_formatter))
 
     plt.tight_layout()
-    plt.savefig(path)
+    if path == None:
+        plt.show()
+    else:    
+        plt.savefig(path)
+
+
 
 
 
