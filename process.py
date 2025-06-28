@@ -1,15 +1,29 @@
 from utils import *
+import argparse
 
-path1 = 'data/488nm_800_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr'
-path2 = 'data/488nm_1000_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr'
-path_fasta = 'data/086902_D_Fasta_20220417.txt'
-f1 = 'F488 Median'
-f2 = 'F488 Median'
+parser = argparse.ArgumentParser(prog='process', 
+                                 description='Combining two PBM scans into one using liner regression (optional) and filtering out spatial correlation using a moving window',
+                                )
+parser.add_argument('path1', type=str, help='Path to a GPR file (low-scan in case of two scans)')
+parser.add_argument('--path2', type=str, default=None, help='Path to the second, high-scan GPR file (optional)')
+parser.add_argument('fasta', type=str, help='Fasta file path')
+parser.add_argument('f', type=str, help='Column of fluorescent intensity to consider')
+parser.add_argument('--ll', type=int, default=200, help='Low threshold for Masliner')
+parser.add_argument('--lh', type=int, default=40_000, help='High threshold for Masliner')
+parser.add_argument('--radius', type=int, default=7, help='Normalization radius')
+
+args = parser.parse_args()
+
+path1 = args.path1
+path2 = args.path2
+path_fasta = args.fasta
+f1, f2 = args.f, args.f
+ll = args.ll
+lh = args.lh
+radius = args.radius
 path_result = None
-ll = 200
-lh = 40_000
-radius = 7
-
+print(args)
+'''
 # Set path_result directory tail as the one of path1 by default
 if path_result == None:
     path_result = split(path1)[0]
@@ -76,3 +90,4 @@ s += f'Log path = {path_log}\n\n'
 
 with open(path_log, 'w') as file:
     file.write(s)
+'''
