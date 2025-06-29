@@ -79,7 +79,10 @@ def test_normalize():
 
         file = f'PBMscan_4x44k_v{version}_Alexa488_MaslinerOutput.gpr'
         gpr = read_gpr(join(HOME, PBM_SUITE_NORMALIZE, 'test_files', file), 'ADJBSI')
-        df_norm = normalize(gpr, join('Temp_normalize', f'fasta_v{version}.txt'), 'ADJBSI', corners=[20, 245, 150, 416])
+
+        
+        gpr = pd.merge(gpr, read_fasta(join('Temp_normalize', f'fasta_v{version}.txt')), how='left', on='ID')
+        df_norm = normalize(gpr, 'ADJBSI', corners=[20, 245, 150, 416])
         # plot_normalize(df_norm, 'ADJBSI')
 
         perl_i = join('test_files', file)

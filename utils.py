@@ -81,13 +81,18 @@ def constraint_corners(col, row, corners, radius):
             mask = mask_fun(col, row) 
     return col, row
 
+def get_norm_masks(df):
+    mask_flags = (df['Flags'] > -100).values    
+    mask_seq = ~ df['Sequence'].isna().values
+    return mask_flags, mask_seq
 
-def normalize(df, path_fasta, f='Adj', radius=7, custom_mask=True, corners=[]):
+def normalize(df, f='Adj', radius=7, custom_mask=True, corners=[]):
+
 
     col = df['Column'].values
     row = df['Row'].values
     y = df[f].values
-    mask_flags = (df['Flags'] > -100).values    
+    mask_flags, mask_seq = get_norm_masks(df)
     col_max, row_max = np.max(col), np.max(row)
 
     # Check reshaped column is in the tile format of [[1, 2, 3, ...], [1, 2, 3, ...], ...] = np.tile(np.arange(col_max) + 1, (row_max, 1))
@@ -96,11 +101,7 @@ def normalize(df, path_fasta, f='Adj', radius=7, custom_mask=True, corners=[]):
     # Check reshaped row is in the repeated format of [[1, 1, 1, ...], [2, 2, 2, ...], ...] = np.tile(np.arange(row_max) + 1, (col_max, 1)).T (similar to the column format but transposed)
     assert np.all(row.reshape(row_max, col_max) == np.tile(np.arange(row_max) + 1, (col_max, 1)).T)   
     
-    # Merge df with fasta sequences (nan for rows with no correspondings in fasta)
-    fasta = read_fasta(path_fasta)
-    df = pd.merge(df, fasta, how='left', on='ID')
-    mask_seq = ~ df['Sequence'].isna().values
-    
+   
     # Set intensity and mask in a 2-dimensional format of the array
     y_arr = y.reshape(row_max, col_max)
     mask_arr = (mask_seq * mask_flags * custom_mask).reshape(row_max, col_max)
