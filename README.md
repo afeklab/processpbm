@@ -121,6 +121,15 @@ $^†$ - if normalization was performed.
 python process.py -g1 './data/488nm_800_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr' -g2 './data/488nm_1000_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr' -f 'data/086902_D_Fasta_20220417.txt' -i 'F488 Median' -o './data/KLFLC'
 ```
 
+### Notes
+
+
+If Masliner is used before normalization, normalization is over the Adj values.
+If disabling Masliner (by providing a single GPR file), normalization is over the selected intensity column from the original GPR (supplied by the `i` argument).
+
+One can use the script without Masliner and without normalization by providing a single GPR and setting the radius to 0.
+In that case, the script only merges the fasta file to the GPR and provides the corresponding "processed" and combinatorial file.
+
 ## Reference
 
 Berger, M. F., & Bulyk, M. L. (2009). Universal protein-binding microarrays for the comprehensive characterization of the DNA-binding specificities of transcription factors. Nature protocols, 4(3), 393-411r
