@@ -5,9 +5,9 @@
 The fluorescent signal of a Protein Binding Microarray (PBM) carries information about the binding specificities of a transcription factor (TF). 
 However, the signal does not explicitly expose the binding specificity.
 Often, experimental sources in the assay alter or truncate the signal.
-The Python scripts here aim to remove such experimental variations, leaving a specific binding signal from a PBM.
+The Python scripts here aim to remove such experimental variations, leaving the specific-binding signal from a PBM.
 We designed the scripts to perform the same functionalities as provided originally in `PBM_analysis_suite_Sep2017` Perl scripts (Berger et al., 2009), which can be downloaded from the Bulyk lab website.
-We reimplemented the Masliner and spatial-normalization functions, removing features we do not usually perform, and made the code easier to read/utilize.
+We reimplemented the Masliner and spatial-normalization functions, removed the features we do not usually perform, and made the code easier to read/utilize.
 
 
 ## Quick Start
