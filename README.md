@@ -17,7 +17,7 @@ All relative paths are with respect to this directory.
 Then, you need to run the script (ensure of installing the packages of Numpy, Pandas, Matplotlib and Scipy):
 
 ```
-python process.py [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-ll LOW_BOUND] [-lh HIGH_BOUND] [-r RADIUS] [-o OUTPUT]
+python process.py [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-o OUTPUT] [-ll LOW_BOUND] [-lh HIGH_BOUND] [-r RADIUS] 
 
 ```
 ### Arguments
@@ -47,6 +47,11 @@ Agilent provides the fasta file in the appropriate format for all designs.
 The fluorescent intensity column in the GPR files should be considered.
 Note that in the original scripts it is the median intensity substructed by the background.
 
+`-o` : str
+
+The path of output is in the form of `<dir path>/<file prefix>`.
+
+
 `-ll` : int, optional
 
 By default, 200.
@@ -64,10 +69,6 @@ This is the high threshold of intensity to consider for the linear regression.
 By default, 7.
 The radius of the moving window is used in normalization.
 Use 0 to skip normalization.
-
-`-o` : str
-
-The path of output is in the form of `<dir path>/<file prefix>`.
 
 ### Output
 

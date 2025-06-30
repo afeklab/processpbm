@@ -8,10 +8,10 @@ parser.add_argument('-g1', '--gpr1', type=str,default=None, help='GPR file path 
 parser.add_argument('-g2', '--gpr2', type=str, default=None, help='GPR file path (high intensity fluorscent scan in case of two scans provided)')
 parser.add_argument('-f', '--fasta', type=str, default=None, help='Fasta file path')
 parser.add_argument('-i', '--intensity_column', type=str, default=None, help='Column of fluorescent intensity to consider')
+parser.add_argument('-o', '--output', type=str, default=None, help='Output path - <dir path>/<file prefix>')
 parser.add_argument('-ll' , '--low_bound', type=int, default=200, help='Linear low-bound for Masliner')
 parser.add_argument('-lh', '--high_bound', type=int, default=40_000, help='Linear high-bound for Masliner')
 parser.add_argument('-r', '--radius', type=int, default=7, help='Normalization radius')
-parser.add_argument('-o', '--output', type=str, default=None, help='Output path - <dir path>/<file prefix>')
 args = parser.parse_args()
 
 gpr1_path = args.gpr1
