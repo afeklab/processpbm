@@ -17,7 +17,7 @@ All relative paths are with respect to this directory.
 Then, you need to run the script (ensure of installing the packages of Numpy, Pandas, Matplotlib and Scipy):
 
 ```
-python process [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-ll LOW_BOUND] [-lh HIGH_BOUND] [-r RADIUS] [-o OUTPUT]
+python process.py [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-ll LOW_BOUND] [-lh HIGH_BOUND] [-r RADIUS] [-o OUTPUT]
 
 ```
 ### Arguments
@@ -38,8 +38,8 @@ Otherwise, the path can directs to the single GPR file to be considered and the 
 
 A path to the fasta file.
 Fasta file is a text file that contains all probe IDs and sequences of the PBM design in fasta form (see example in `data`).
-The normalization script considers only probes with sequence provided in the fasta file and does not provide normalized signal for any other (controls provided by manufacture).
-The combinatorial file includes only probes with sequences provided in the fasta file.
+The normalization script considers only probes with sequence provided in the fasta file and does not provide normalized signal for any other (e.g., controls provided by manufacture).
+Moreover, the combinatorial file includes only probes with sequences provided in the fasta file.
 Agilent provides the fasta file in the appropriate format for all designs.
 
 `-i` : str
@@ -69,12 +69,58 @@ Use 0 to skip normalization.
 
 The path of output is in the form of `<dir path>/<file prefix>`.
 
+### Output
+
+TThe script saves multiple files with the directory and prefix file name provided in the output path argument.
+The following are the file suffixes and their descriptions:
+
+`_log.txt` : 
+The log text file of the script run.
+
+`_processed.csv` : 
+Contains the following columns:
+* Block (from original GPR)
+* Column (from original GPR)
+* Row (from original GPR)
+* Name (from original GPR)
+* ID (from original GPR)
+* Flags (from original GPR)
+* \<i\> (if Masliner was not performed) - fluorescent intensity column from original GPR.
+* Low $^*$ - low fluorescent intensity column from original GPR.
+* High $^*$ - high fluorescent intensity column from original GPR.
+* Adj $^*$ - Masliner adjusted values.
+* Sequence (from fasta file)
+* Top $^†$ - The top row boundary of the moving window.
+* Bottom $^†$ - The bottom row boundary of the moving window.
+* Left $^†$ - The left column boundary of the moving window.
+* Right $^†$ - The right column boundary of the moving window.
+* Local window median $^†$ - The considered local median intensity of the window.
+* Window size $^†$ - The number of probes in the window used for local median intensity calculation.
+* Norm $^†$ - Normalized values.
+
+`_combinatoril.txt` :
+The file contains all sequences with processed intensity signals sorted from highest to lowest.
+This is the format used for the original Seed-and-wobble Perl script.
+The combinatorial file includes only probes with sequences provided in the fasta file.
+
+`_masliner.png` $^*$ :
+Figure describing the output of Masliner.
+
+`_normalize.png` $^†$ :
+Figure describing the array intensity layout according to the signal provided to the normalization and the normalized signal.
+
+$^*$ - if Masliner was performed.
+
+$^†$ - if normalization was performed.
+
+
+
 ### Example
 
 ```
-python process -g1 './data/488nm_800_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr' -g2 './data/488nm_1000_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr' -f 'data/086902_D_Fasta_20220417.txt' -i 'F488 Median' -o './data/KLFLC'
+python process.py -g1 './data/488nm_800_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr' -g2 './data/488nm_1000_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr' -f 'data/086902_D_Fasta_20220417.txt' -i 'F488 Median' -o './data/KLFLC'
 ```
 
 ## Reference
 
-Berger, M. F., & Bulyk, M. L. (2009). Universal protein-binding microarrays for the comprehensive characterization of the DNA-binding specificities of transcription factors. Nature protocols, 4(3), 393-411.
+Berger, M. F., & Bulyk, M. L. (2009). Universal protein-binding microarrays for the comprehensive characterization of the DNA-binding specificities of transcription factors. Nature protocols, 4(3), 393-411r
