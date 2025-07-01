@@ -86,7 +86,7 @@ def get_norm_masks(df):
 
 def normalize(df, f='Adj', radius=7, custom_mask=True, corners=[]):
 
-
+    df = df.copy()
     col = df['Column'].values
     row = df['Row'].values
     y = df[f].values
