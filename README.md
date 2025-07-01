@@ -131,6 +131,12 @@ If disabling Masliner (by providing a single GPR file), normalization is over th
 One can use the script without Masliner and without normalization by providing a single GPR and setting the radius to 0.
 In that case, the script only merges the fasta file to the GPR and provides the corresponding "processed" and combinatorial file.
 
+## Masliner
+
+## Normalization
+
+![Alt text](figures/norm_ver1.png)
+
 ## Reference
 
 Berger, M. F., & Bulyk, M. L. (2009). Universal protein-binding microarrays for the comprehensive characterization of the DNA-binding specificities of transcription factors. Nature protocols, 4(3), 393-411r

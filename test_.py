@@ -78,12 +78,16 @@ def plot_corners(axis, corners, radius, row_max, col_max):
     y_dict['ll'] = ll - 2 * radius + x_dict['ll']
      
     # Lower right corner 
-    x_dict['lr'] = np.arange(lr - 2 * radius - row_max, col_max) 
+    x_dict['lr'] = np.arange(lr - 2 * radius - row_max + 1, col_max) 
     y_dict['lr'] = lr - 2 * radius - x_dict['lr']
  
     for k in x_dict:    
-        axis.plot(x_dict[k], y_dict[k], color='tab:red')
-    
+        axis.plot(x_dict[k], y_dict[k], color='tab:green')
+def plot_window(axis, example):    
+    for r in range(example['Top'] - 1, example['Bottom']):
+        for c in range(example['Left'] - 1, example['Right']):
+            axis.scatter(r, c, marker=',', color='tab:red', alpha=0.1, ec=None)
+    axis.scatter(example['Row'], example['Column'], marker='o', color='tab:orange', s=15, ec='k')
 
 def test_normalize():
 
@@ -93,6 +97,7 @@ def test_normalize():
     for version in [1, 2]:
     
         subprocess.run('mkdir Temp_normalize', shell=True)
+        subprocess.run('mkdir figures', shell=True)
 
         # Create Fasta file from probe_sequences in PBM suite
         fasta_file = f'4x44k_v{version}_sequences.txt'
@@ -105,7 +110,7 @@ def test_normalize():
         with open(join('Temp_normalize', f'fasta_v{version}.txt'), 'w') as file:
             file.write(fasta_str)
 
-
+        # Read GPR
         file = f'PBMscan_4x44k_v{version}_Alexa488_MaslinerOutput.gpr'
         gpr = read_gpr(join(HOME, PBM_SUITE_NORMALIZE, 'test_files', file), 'ADJBSI')
 
@@ -113,7 +118,6 @@ def test_normalize():
         gpr = pd.merge(gpr, read_fasta(join('Temp_normalize', f'fasta_v{version}.txt')), how='left', on='ID')
         df_norm = normalize(gpr, 'ADJBSI', corners=corners)
         df_norm_nc = normalize(gpr, 'ADJBSI')
-        # plot_normalize(df_norm, 'ADJBSI')
 
         # Perform Perl normalization
         perl_i = join('test_files', file)
@@ -128,8 +132,10 @@ def test_normalize():
         df_perl_norm = pd.read_csv(join('Temp_normalize', 'normalize_alldata.txt'), sep='\t', index_col=None)
         df_perl_norm['ID'] = df_perl_norm['ID'].astype(str)
 
+        # Assert same layout of Python and Perl results 
         for c in ['Column', 'Row', 'ID']:
             assert np.all(df_norm[c] == df_perl_norm[c])
+            assert np.all(df_norm[c] == df_norm_nc[c])
 
         # Assert difference between Perl and Python scripts (using corners) is negligible
         assert np.max(np.abs(df_norm['Norm'] - df_perl_norm['Alexa488Adjusted'])) < 1e-9
@@ -138,37 +144,48 @@ def test_normalize():
         mask_corner_diff = (np.abs(df_norm_nc['Norm'] - df_norm['Norm']) > 1e-9).values
         
         # Plot 
-        fig = plt.figure()
-        gs = GridSpec(2, 4)
+
+        ## Plot normalization
+        fig = plt.figure(figsize=(12, 8))
+        gs = GridSpec(2, 4, height_ratios=[2, 1])
         axes_arr = [fig.add_subplot(gs[0, i: i + 1]) for i in range(4)]
         axis_scatter = fig.add_subplot(gs[1, 1 : 3])
-
         col_max, row_max = df_perl_norm['Column'].max(), df_perl_norm['Row'].max()
         for i, df, c in zip([0, 1, 2], [df_perl_norm, df_norm, df_norm_nc], ['Alexa488Adjusted', 'Norm', 'Norm']):
             axes_arr[i].matshow(df[c].values.reshape(row_max, col_max))
         axes_arr[3].matshow(mask_corner_diff.reshape(row_max, col_max))
 
-        titles = ['Perl Normalization\n(with corners constraints)','Python Normalization\n(with corners constraints)\n(Same as Perl result up to 1e-9)','Python Normalization\n(no corners constraints)', 'Probes with different values (yellow)\ndue to the usage of contraints']
+        ## Plot titles, coreners and window example
+        titles = ['Perl with corners constraints\n ','Python with corners constraints\n(same as Perl result up to 1e-9)',r'Python with $\mathbf{no}$ corners constraints' + '\n', 'Probes with different values (yellow)\ndue to the usage of contraints']
+        example_arg = np.argmin((df_norm.dropna()['Row'] + df_norm.dropna()['Column']) ** 2)
+        norm_example = df_norm.dropna().iloc[example_arg]
+        norm_nc_example = df_norm_nc.dropna().iloc[example_arg]
         for axis, t in zip(axes_arr, titles):
             plot_corners(axis, corners, 7, row_max, col_max)
             axis.set_title(t)
-        axis.plot([], [], color='tab:red', label='Corner')
-        fig.legend()
+            if t == titles[1]:
+                plot_window(axis, norm_example)           
+            if t == titles[2]:
+                plot_window(axis, norm_nc_example)
 
+        ## Plot legends
+        axis.plot([], [], color='tab:green', label='Corner')
+        axis.scatter([], [], color='pink', ec='k', label='Probe example')
+        axis.scatter([], [], color='tab:red', marker='s', label='Probe example window')
+        fig.legend(ncol=3, loc='center', bbox_to_anchor=(0.5, 0.5))
 
+        ## Plot scatter plot of the difference between constraints and no constraints
         axis_scatter.scatter(df_norm_nc['Norm'], df_norm['Norm'], color='purple') 
         axis_scatter.scatter(df_norm_nc['Norm'][mask_corner_diff], df_norm['Norm'][mask_corner_diff], color='yellow', ec='k', label='Difference due to corner constaints') 
-        axis_scatter.set_ylabel('Normalized values -\ncorners constraints')
-        axis_scatter.set_xlabel('Normalized values - no corners constraints')
+        axis_scatter.set_ylabel('Python with corners constraints')
+        axis_scatter.set_xlabel(r'Python with $\mathbf{no}$ corners constraints')
         axis_scatter.legend()
         nonan_mask = ~ np.isnan(df_norm['Norm'].values)
         R2 = r2_score(df_norm['Norm'][nonan_mask], df_norm_nc['Norm'][nonan_mask])
-        axis_scatter.text(0.05, 0.8, f'R2={R2:.5f}', transform=axis_scatter.transAxes, verticalalignment='top', horizontalalignment='left')
-        plt.show()
-        # print(np.sum(np.abs(df_norm['Norm'] - df_norm_nc['Norm']) > 1e-9))
+        axis_scatter.text(0.05, 0.85, f'R$^2$={R2:.5f}', transform=axis_scatter.transAxes, verticalalignment='top', horizontalalignment='left')
+        plt.tight_layout()
+        plt.savefig(f'figures/norm_ver{version}.png', dpi=300, bbox_inches='tight')
 
         # Remove files
         subprocess.run('rm -rf Temp_normalize', shell=True)
     subprocess.run(f'rm -rf {join(HOME, PBM_SUITE_NORMALIZE)}', shell=True)
-
-test_normalize()
