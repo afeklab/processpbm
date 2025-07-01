@@ -1,7 +1,6 @@
 # general file patterns to ignore
 *.csv
 *.txt
-*.png
 *.pwm
 *.npy
 *.pdf
