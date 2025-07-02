@@ -12,10 +12,14 @@ We reimplemented the Masliner and spatial-normalization functions, removed the f
 
 ## Quick Start
 
-First change directory in the terminal to the one that contains the `process.py`.
-All relative paths are with respect to this directory.
-Then, you need to run the script (ensure of installing the packages of Numpy, Pandas, Matplotlib and Scipy):
+1. Make sure your Python environment contains the installed packages of Numpy, Pandas, Matplotlib and Scipy.
 
+2. Change directory in the terminal to the one that contains the `process.py`, e.g., in bash:
+```
+cd processpbm
+```
+
+3. Run:
 ```
 python process.py [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-o OUTPUT] [-ll LOW_BOUND] [-lh HIGH_BOUND] [-r RADIUS] 
 
