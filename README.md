@@ -12,7 +12,7 @@ We reimplemented the Masliner and spatial-normalization functions, removed the f
 
 ## Quick Start
 
-1. Make sure your Python environment contains the installed packages of Numpy, Pandas, Matplotlib and Scipy.
+1. Make sure your Python environment contains the installed Numpy, Pandas, Matplotlib, and Scipy packages.
 
 2. Change directory in the terminal to the one that contains the `process.py`, e.g., in bash:
 ```
@@ -41,15 +41,15 @@ Otherwise, the path can directs to the single GPR file to be considered and the 
 `-f` :  str
 
 A path to the fasta file.
-Fasta file is a text file that contains all probe IDs and sequences of the PBM design in fasta form (see example in `data`).
-The normalization script considers only probes with sequence provided in the fasta file and does not provide normalized signal for any other (e.g., controls provided by manufacture).
-Moreover, the combinatorial file includes only probes with sequences provided in the fasta file.
-Agilent provides the fasta file in the appropriate format for all designs.
+Fasta file is a text file that contains all probe IDs and sequences of the PBM design in Fasta form (see example in `data`).
+The normalization script considers only probes with a sequence provided in the fasta file and does not provide a normalized signal for any other (e.g., controls provided by the manufacturer).
+Moreover, the combinatorial file includes only probes with sequences provided in the Fasta file.
+Agilent provides the Fasta file in the appropriate format for all designs.
 
 `-i` : str
 
 The fluorescent intensity column in the GPR files should be considered.
-Note that in the original scripts it is the median intensity substructed by the background.
+Note that in the original scripts, it is the median intensity subtracted by the background.
 
 `-o` : str
 
@@ -59,7 +59,7 @@ The path of output is in the form of `<dir path>/<file prefix>`.
 `-ll` : int, optional
 
 By default, 200.
-The linear low bound for Masliner.
+The linear lower bound for Masliner.
 This is the low threshold of intensity to consider for the linear regression.
 
 `-lh` : int, optional
@@ -76,7 +76,7 @@ Use 0 to skip normalization.
 
 ### Output
 
-TThe script saves multiple files with the directory and prefix file name provided in the output path argument.
+The script saves multiple files in the directory and prefixes the file name provided in the output path argument.
 The following are the file suffixes and their descriptions:
 
 `_log.txt` : 
@@ -112,7 +112,7 @@ The combinatorial file includes only probes with sequences provided in the fasta
 Figure describing the output of Masliner.
 
 `_normalize.png` $^†$ :
-Figure describing the array intensity layout according to the signal provided to the normalization and the normalized signal.
+The figure describes the array intensity layout according to the signal provided for the normalization and the normalized signal.
 
 $^*$ - if Masliner was performed.
 
@@ -133,9 +133,32 @@ If Masliner is used before normalization, normalization is over the Adj values.
 If disabling Masliner (by providing a single GPR file), normalization is over the selected intensity column from the original GPR (supplied by the `i` argument).
 
 One can use the script without Masliner and without normalization by providing a single GPR and setting the radius to 0.
-In that case, the script only merges the fasta file to the GPR and provides the corresponding "processed" and combinatorial file.
+In that case, the script only merges the Fasta file to the GPR and provides the corresponding "processed" and combinatorial file.
 
 ## Masliner
+
+The scanner yields 16-bit images, i.e., the image uses 16 bits ($2^{16}=65,536$ unique values) to represent each pixel's intensity.
+This information capacity may not be sufficient to capture the signal of TF specific binding at high resolution.
+For example, in some cases, one can observe the saturation of the signal.
+According to the GenePix manual (2017), the reason may be an overload of photons to be processed and converted into an electric signal, namely, the signal is above the dynamic range of the scan.
+
+One can scan in a shifted dynamic range to capture a saturated signal in its complete informative form (while losing the low signal to underdetection).
+In that case, one has two scans, each in a different dynamic range, holding specific binding information.
+Note that to change the dynamic range, the manual recommends setting the gain of the scan at different values--- controlling the detector's sensitivity (as opposed to Berger et al., 2009, which claims to change the power of the laser).
+The gain values are between 100 and 1000.
+By changing the gain between 400 and 1000, unless the signal is underdetected/saturated, the effect of the gain is supposed to be linear.
+
+The two scans must be combined into a single format.
+Masliner combines two scans of different dynamic ranges by assuming the above linearity assumption.
+To use it properly, one must determine and input the linear range for which the two scans are linearly correlated.
+The two threshold arguments, `ll` and `lh`, set the lower and upper bounds of the linear range by the following masking.
+If a probe holds the intensity values of $y_1$ and $y_2$ according to the low and high scan provided (respectively), then we will consider it for the linear regression fitting if `ll`$<y_1, y_2<$`lh`.
+After fitting the linear regression line, the adjusted values are simply the high scan (with the potential saturation), which holds the robust information for the low-intensity probes.
+However, for all values of the high scan above `lh`, the adjusted values are calculated according to the linear regression line, which extrapolates the saturation according to the information provided in the low scan.
+
+We note that the default values of `ll` and `lh` is set according to the original documentation of `PBM_analysis_suite_Sep2017`.
+ 
+
 
 ## Normalization
 
