@@ -54,6 +54,20 @@ def test_maliner():
 
         # Assert the same result
         assert np.max(np.abs(perl_adj - adj)) == 0
+        
+        # Plot
+        if version == 1:
+            fig, axis = plt.subplots(figsize=(6, 3))
+            axis.set_title('Masliner adjusted result')
+            axis.scatter(y1, y2, label='original')
+            axis.scatter(y1, adj, label='adjusted')
+            axis.set_xlabel('Low-scan fluorescent intensity')
+            axis.set_ylabel('High-scan fluorescent intensity')
+            axis.plot([ll, ll, lh, lh, ll], [ll, lh, lh, ll, ll], ls='--', color='k', label='Points domain for lin. reg.')
+            axis.text(0.3, 0.6, 'Extrapolated values', transform=axis.transAxes, horizontalalignment='center', verticalalignment='center', rotation=40)
+            axis.text(0.4, 0.225, 'Saturated values', transform=axis.transAxes, horizontalalignment='center', verticalalignment='center')
+            axis.legend()
+            plt.savefig(f'figures/masliner_ver{version}.png', dpi=300, bbox_inches='tight')
 
         # Remove files
         subprocess.run('rm -rf Temp_masliner', shell=True)

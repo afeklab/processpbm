@@ -9,6 +9,14 @@ The Python scripts here aim to remove such experimental variations, leaving the 
 We designed the scripts to perform the same functionalities as provided originally in `PBM_analysis_suite_Sep2017` Perl scripts (Berger et al., 2009), which can be downloaded from the Bulyk lab website.
 We reimplemented the Masliner and spatial-normalization functions, removed the features we do not usually perform, and made the code easier to read/utilize.
 
+Briefly, masliner functionality aims to combine two scans (of the same array, scanned one after the other) of different dynamic range (by adjusting different gains).
+The combination extends the information and avoids saturation/low detection deficiencies (see Masliner section).
+One can skip it by providing a single GPR file.
+
+The normalization functionality aims to remove spatial correlation in the scan.
+Recall that given a design with the probes being randomly distributed over the array, we expect the signal to behave randomly in space.
+Spatial correlation in the signal indicates some physical source in the array that interferes with the signal/fluorophore solution, which the script means to remove by applying a moving window, and dividing each probe by its local median of the window (see normalization section).
+
 
 ## Quick Start
 
@@ -30,13 +38,13 @@ python process.py [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-o OUT
 
 A path to a GPR file.
 If two GPR files are to be provided, this file is the low-intensity fluorescent scan one.
-Otherwise, the path directs to the single GPR file to be considered and the script will nor perform Masliner.
+Otherwise, the path directs to the single GPR file to be considered and the script will not perform Masliner.
 
 `-g2` : str, optional if `g1` is provided
 
 A path to a GPR file.
 If two GPR files are designed to be provided, this file is the high-intensity fluorescent scan one.
-Otherwise, the path can directs to the single GPR file to be considered and the script will nor perform Masliner.
+Otherwise, the path can directs to the single GPR file to be considered and the script will not perform Masliner.
 
 `-f` :  str
 
@@ -156,9 +164,16 @@ If a probe holds the intensity values of $y_1$ and $y_2$ according to the low an
 After fitting the linear regression line, the adjusted values are simply the high scan (with the potential saturation), which holds the robust information for the low-intensity probes.
 However, for all values of the high scan above `lh`, the adjusted values are calculated according to the linear regression line, which extrapolates the saturation according to the information provided in the low scan.
 
-We note that the default values of `ll` and `lh` is set according to the original documentation of `PBM_analysis_suite_Sep2017`.
- 
+In the following image, the blue points are the scatter plot of low vs. high gain scan (low is the x-axis).
+The dashed square is the domain of points used for the linear regression according to the `ll` and `lh` points.
+The orange points are the adjusted.
+As you can see, the orange and the blue overlap up to the high threshold.
+After that, it gets close to the linear range, for which we use the linear regression prediction, utilizing the information from the lower scan and extrapolating it for the higher one.
 
+
+![Alt text](figures/masliner_ver1.png)
+We note that the default values of `ll` and `lh` is set according to the example in the original documentation of `PBM_analysis_suite_Sep2017`.
+ 
 
 ## Normalization
 

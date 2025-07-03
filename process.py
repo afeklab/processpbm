@@ -24,17 +24,6 @@ radius = args.radius
 output = args.output
 
 
-''' DEBUG
-gpr1_path = 'data/488nm_800_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr'
-gpr2_path = 'data/488nm_1000_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr'
-fasta_path = 'data/086902_D_Fasta_20220417.txt'
-intensity_col = 'F488 Median'
-ll = 200
-lh = 40_000
-radius = 7
-output = 'data/KLFLC'
-'''
-
 # Initiate log with input information
 s = ''
 s += '# Input information\n\n'
