@@ -215,6 +215,17 @@ At the bottom, we scatter all normalized probe values by the Python script, with
 
 ![Alt text](figures/norm_ver1.png)
 
+## How to report 
+
+Upon using the `process.py`, you need to report:
+
+1. Different scans were combined using the Masliner functionality in Berger et al. (2009) with `ll` and `lh` values.
+
+2. Spatial correlation was removed by applying a moving radius `r` window and multiplying each probe by the global to local median intensity ratio (excluding control probes from calculations).
+
+Of course, if you did not use Masliner, exclude 1 from the report.
+If you did not use normalization, exclude 2 from your report.
+
 ## Reference
 
 Berger, M. F., & Bulyk, M. L. (2009). Universal protein-binding microarrays for the comprehensive characterization of the DNA-binding specificities of transcription factors. Nature protocols, 4(3), 393-411r
