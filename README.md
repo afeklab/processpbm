@@ -219,12 +219,14 @@ At the bottom, we scatter all normalized probe values by the Python script, with
 
 Upon using the `process.py`, you need to report:
 
-1. Different scans were combined using the Masliner functionality in Berger et al. (2009) with `ll` and `lh` values.
+1. Raw probes' fluorescent intensity is `i (i.e., report which column in the GPRs is chosen to represent the signal).
 
-2. Spatial correlation was removed by applying a moving radius `r` window and multiplying each probe by the global to local median intensity ratio (excluding control probes from calculations).
+2. Different scans were combined using the Masliner functionality in Berger et al. (2009) with `ll` and `lh` values (i.e., write the values of the `ll` and `lh` values).
 
-Of course, if you did not use Masliner, exclude 1 from the report.
-If you did not use normalization, exclude 2 from your report.
+3. Spatial correlation was removed by applying a moving radius `r` (write the radius values) window and multiplying each probe by the global to local median intensity ratio (excluding control probes from calculations).
+
+Of course, if you did not use Masliner, exclude 2. from the report.
+If you did not use normalization, exclude 3. from your report.
 
 ## Reference
 
