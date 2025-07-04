@@ -164,7 +164,7 @@ If a probe holds the intensity values of $y_1$ and $y_2$ according to the low an
 After fitting the linear regression line, the adjusted values are simply the high scan (with the potential saturation), which holds the robust information for the low-intensity probes.
 However, for all values of the high scan above `lh`, the adjusted values are calculated according to the linear regression line, which extrapolates the saturation according to the information provided in the low scan.
 
-In the following image, the blue points are the scatter plot of low vs. high gain scan (low is the x-axis).
+In the following image (data from `PBM_analysis_suite_Sep2017`, Berger et al., 2009), the blue points are the scatter plot of low vs. high gain scan (low is the x-axis).
 The dashed square is the domain of points used for the linear regression according to the `ll` and `lh` points.
 The orange points are the adjusted.
 As you can see, the orange and the blue overlap up to the high threshold.
@@ -176,6 +176,42 @@ We note that the default values of `ll` and `lh` is set according to the example
  
 
 ## Normalization
+
+Most of our designs contain the probe shuffled in the 2-diemnsional space of the array.
+Therefore, we expect no spatial correlation between the probe values.
+Sometimes, we get spatial correlation due to some factors (e.g., dust), which the normalization functionality aims to remove.
+The idea in the original `PBM_analysis_suite_Sep2017` Perl script is to calculate the median intensity of the neighborhood (surrounding square) for each probe and multiply the probe value by the global to the local median ratio.
+If the probe is located in a local region of high intensity, the operation should reduce it, and vice versa.
+We note that upon calculating the local median, the operation will mask out the intensity of probes not provided in the Fasta file (e.g., Agilent controls) or that are flagged.
+Moreover, if the function masks out more than half of the probes, the normalization renders the normalized value as the input (i.e., skip it).
+
+The operation is straightforward except for some constraints when calculating a local median.
+When the probe is at the edge of the array, some local windows penetrate outside the array.
+Therefore, the scheme is to shift the window into the array until it is entirely in it.
+For example, given a probe on the top of the array, we will shift the window downward until it is entirely inside the array such that the probe is located at the top center of the window.
+
+One of the main problems in the original script is the usage of corner constraints on the local window.
+Each design has some regions in the array in its corners where local windows would be shifted diagonally into the array, analogously to the edge constraints described above.
+We could not find any explanation of such a scheme, but we did notice that those corners are designed differently depending on the Agent layout.
+Moreover, they correspond to the area at the corners of the array, which comprises many Agilent control probes.
+So, for probes (the designed one, not Agilent control) close to a control region with no specific binding signal, the local median is treated as the one within the array on the corner line.
+We do not use such a scheme for several reasons.
+First, we are unsure how objective such a scheme is in getting the "true" signal at those corners.
+Secondly, one needs to manually adjust the corners for each design (including the LC-science one).
+Thirdly, in several cases, for example, Agielnt 15K and LC-science 48K design, the corner controls are so small that they do not need special treatment (we mention again that any control probe is not taken into the local median calculation).
+Lastly, as you will see in the following, removing the corner constraint does not make a big difference in values.
+
+In the following image (data from `PBM_analysis_suite_Sep2017`, Berger et al., 2009), four array plots of the same 45K probe design exist.
+From left to right, the first is the normalized probe intensity according to the Perl script, whereas in green, we plotted the defined corners according to the original script.
+The second is the normalized one according to our script using corner constraints.
+White pixels are the omitted probes that are not in the Fasta file.
+For the rest of the probes, the values from Perl and the Python script are the same up to a 1e-9 rounding error.
+We also added an example of a probe (pink) with the corresponding local window (red).
+Note that the probe is at the corner of the window due to the shifted location of the window and the corner constraint.
+The third is the same as the second, but we removed the constraints in the calculation corner.
+The window is in the original position, and the example probe is located at the center of the window, which contains many controls that have not been considered in the local median calculation.
+Lastly, the rightmost array describes which probe value has changed by removing the corner constraints (yellow): just after the corners.
+At the bottom, we scatter all normalized probe values by the Python script, with (y-axis) and without (x-axis) the corner constraints, where you can see that it resulted in a minimal variance in the values, primarily for probes with very low signal (carrying no informative signal).
 
 ![Alt text](figures/norm_ver1.png)
 
