@@ -201,15 +201,16 @@ Secondly, one needs to manually adjust the corners for each design (including th
 Thirdly, in several cases, for example, Agielnt 15K and LC-science 48K design, the corner controls are so small that they do not need special treatment (we mention again that any control probe is not taken into the local median calculation).
 Lastly, as you will see in the following, removing the corner constraint does not make a big difference in values.
 
-In the following image (data from `PBM_analysis_suite_Sep2017`, Berger et al., 2009), four array plots of the same 45K probe design exist.
+In the following image (data from `PBM_analysis_suite_Sep2017`, Berger et al., 2009), four array plots of the same 45K probe design are displayed.
 From left to right, the first is the normalized probe intensity according to the Perl script, whereas in green, we plotted the defined corners according to the original script.
 The second is the normalized one according to our script using corner constraints.
 White pixels are the omitted probes that are not in the Fasta file.
 For the rest of the probes, the values from Perl and the Python script are the same up to a 1e-9 rounding error.
 We also added an example of a probe (pink) with the corresponding local window (red).
-Note that the probe is at the corner of the window due to the shifted location of the window and the corner constraint.
-The third is the same as the second, but we removed the constraints in the calculation corner.
-The window is in the original position, and the example probe is located at the center of the window, which contains many controls that have not been considered in the local median calculation.
+Note that the probe is at the corner of the window due to the shifted location of the window.
+The third is the same as the second, but we removed the corners constraints.
+Note that the window is in the original position this time, and the example probe is located at the center of the window as well.
+In that case, the window contains many Agilent controls that have not been considered in the local median calculation.
 Lastly, the rightmost array describes which probe value has changed by removing the corner constraints (yellow): just after the corners.
 At the bottom, we scatter all normalized probe values by the Python script, with (y-axis) and without (x-axis) the corner constraints, where you can see that it resulted in a minimal variance in the values, primarily for probes with very low signal (carrying no informative signal).
 
