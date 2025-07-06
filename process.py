@@ -9,9 +9,9 @@ parser.add_argument('-g2', '--gpr2', type=str, default=None, help='A path to a G
 parser.add_argument('-f', '--fasta', type=str, default=None, help='A path to the fasta file. The normalization script considers only probes with a sequence provided in the fasta file and does not provide a normalized signal for any other (e.g., controls provided by the manufacturer). Moreover, the combinatorial file includes only probes with sequences provided in the Fasta file.')
 parser.add_argument('-i', '--intensity_column', type=str, default=None, help='The fluorescent intensity column in the GPR files to be considered.')
 parser.add_argument('-o', '--output', type=str, default=None, help='The path of output, in the form of <dir path>/<file prefix>.')
-parser.add_argument('-ll' , '--low_bound', type=int, default=200, help='The linear lower bound for Masliner. This is the low threshold of intensity to consider for the linear regression.')
-parser.add_argument('-lh', '--high_bound', type=int, default=40_000, help='The linear high bound for Masliner. This is the high threshold of intensity to consider for the linear regression.')
-parser.add_argument('-r', '--radius', type=int, default=7, help='The radius of the moving window is used in normalization. Use 0 to skip normalization.')
+parser.add_argument('-ll' , '--low_bound', type=int, default=200, help='By default, 200. The linear lower bound for Masliner. This is the low threshold of intensity to consider for the linear regression.')
+parser.add_argument('-lh', '--high_bound', type=int, default=40_000, help='By default, 40,000. The linear high bound for Masliner. This is the high threshold of intensity to consider for the linear regression.')
+parser.add_argument('-r', '--radius', type=int, default=7, help='By default, 7. The radius of the moving window is used in normalization. Use 0 to skip normalization.')
 args = parser.parse_args()
 
 gpr1_path = args.gpr1
