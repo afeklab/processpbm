@@ -7,8 +7,17 @@ from matplotlib.ticker import FuncFormatter
 
 COLUMNS = ['Block', 'Column', 'Row', 'Name', 'ID', 'Flags']
 
-def read_gpr(path, f):
+def read_gpr(path, i):
+    """
+    Reads a GPR file into a DataFrame, extracting only selected columns.
 
+    Parameters:
+        path (str): Path to the GPR file.
+        i (str): The raw fluorescence column to use (e.g. 'F488 Median').
+
+    Returns:
+        gpr (pd.DataFrame): DataFrame containing the selected columns: COLUMNS + [i].
+    """
     
     # Get the index of the header of the GPR without reading the entire file    
     with open(path, 'r') as file:
@@ -18,24 +27,57 @@ def read_gpr(path, f):
         for line in file:
             
             # If all columns in the line
-            if np.all([c in line for c in COLUMNS + [f]]):
+            if np.all([c in line for c in COLUMNS + [i]]):
                 break
             else: 
                 header_i += 1
     
-    # Read and return GPR DataFrames using pandas and the header index
-    gpr = pd.read_csv(path, sep='\t', header=header_i)[COLUMNS + [f]]
+    # Read and return GPR DataFrames using the header index
+    gpr = pd.read_csv(path, sep='\t', header=header_i)[COLUMNS + [i]]
     gpr['Name'] = gpr['Name'].astype(str)
     gpr['ID'] = gpr['ID'].astype(str)
     return gpr
 
 def read_fasta(path):
+    """
+    Reads a FASTA-formatted file into a DataFrame with columns for ID and sequence.
+
+    Assumes the format: `>ID\nSequence\n` repeated per entry, with `>` as the line terminator.
+
+    Parameters:
+        path (str): Path to the FASTA file.
+
+    Returns:
+        fasta (pd.DataFrame): DataFrame with columns 'ID' and 'Sequence'.
+    """
     fasta = pd.read_csv(path, lineterminator='>', header=None)[0] # Select the single colum to get a Series
     fasta = fasta.str.extract(r'(?P<ID>.*)\n(?P<Sequence>.*)\n') # Extract ID and sequence using regular expressions (see function documentation for explanation)
     return fasta
 
 def masliner(y1, y2, ll=200, lh=40_000):
+    """
+    Applies Masliner (see README).
 
+    Performs a linear regression on (y1, y2) values within the given lower and upper thresholds.
+    Adjusted values are y2 unless y2 is above the upper bound, then it is replaced with extrapolated values from the regression.
+
+    Parameters:
+        y1 (np.ndarray): Low-scan intensity values.
+        y2 (np.ndarray): High-scan intensity values.
+        ll (int): Lower bound of intensities for regression.
+        lh (int): Upper bound of intensities for regression.
+
+    Returns:
+        tuple: (
+            adj (np.ndarray): Adjusted high-scan values,
+            slope (float): Regression slope,
+            intercept (float): Regression intercept,
+            r (float): Pearson correlation coefficient,
+            p (float): p-value,
+            se (float): Standard error of the regression,
+            reg_num (int): Number of points used in the regression
+        )
+    """
     # Mask range for linear regression and perform linear regression (PerformStraightRegression in original)
     mask = (y1 >= ll) * (y2 >= ll) * (y1 <= lh) * (y2 <= lh)
     reg_num = np.sum(mask)
@@ -45,7 +87,18 @@ def masliner(y1, y2, ll=200, lh=40_000):
     return adj, slope, intercept, r, p, se, reg_num
 
 def constraint_corners(col, row, corners, radius):
+    """
+    Applies normalization corner constraints by adjusting probe positions diagonally toward the corner boundary lines (see README).
 
+    Parameters:
+        col (np.ndarray): Column positions of probes.
+        row (np.ndarray): Row positions of probes.
+        corners (list of int): List of four integers [upperleft, upperright, lowerleft, lowerright] defining the corners lines.
+        radius (int): Radius of the normalization window, used to define the distance from the edge.
+
+    Returns:
+        tuple of np.ndarray: (adjusted_col, adjusted_row) with corrected probe positions.
+    """
     ul, ur, ll, lr = corners # upperleft, upperright, lowerleft, lowerright
 
     # Create corners conditions as list of mask functions and the corresponding col and row adjsument functions (median_neighborhood in original)    
@@ -80,16 +133,44 @@ def constraint_corners(col, row, corners, radius):
     return col, row
 
 def get_norm_masks(df):
+    """
+    Computes mask array for which there is not -100 flags and exsiting sequence.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame with 'Flags' and 'Sequence' columns.
+
+    Returns:
+        tuple: (
+            mask_flags (np.ndarray): Mask for valid Flags (> -100),
+            mask_seq (np.ndarray): Mask for valid (non-null) Sequences
+        )
+    """
     mask_flags = (df['Flags'] > -100).values    
     mask_seq = ~ df['Sequence'].isna().values
     return mask_flags, mask_seq
 
-def normalize(df, f='Adj', radius=7, custom_mask=True, corners=[]):
+def normalize(df, i='Adj', radius=7, custom_mask=True, corners=[]):
+    """
+    Normalizes probe intensities using local median window (see README).
 
+    Parameters:
+        df (pd.DataFrame): DataFrame with intensity and positional data.
+        i (str): Column name for intensity values to normalize.
+        radius (int): window radius.
+        custom_mask (bool): Custom mask condition for applying normalization.
+        corners (list): Optional corner constraints (ul, ur, ll, lr); if empty, no corners adjustments.
+
+    Returns:
+        pd.DataFrame: Copy of the input DataFrame with added columns:
+            - 'Top', 'Bottom', 'Left', 'Right': window boundaries
+            - 'Local window median': median in the local window
+            - 'Window size': number of valid probes in window
+            - 'Norm': normalized intensity values
+    """
     df = df.copy()
     col = df['Column'].values
     row = df['Row'].values
-    y = df[f].values
+    y = df[i].values
     mask_flags, mask_seq = get_norm_masks(df)
     col_max, row_max = np.max(col), np.max(row)
 
@@ -165,7 +246,18 @@ def normalize(df, f='Adj', radius=7, custom_mask=True, corners=[]):
     return df
 
 def plot_masliner(y1, y2, adj, path=None):
-    
+    """
+    Plots original and adjusted intensity values after Masliner correction.
+
+    Parameters:
+        y1 (np.ndarray): Low-scan intensity values.
+        y2 (np.ndarray): High-scan intensity values.
+        adj (np.ndarray): Adjusted high-scan values.
+        path (str or None): If given, the plot is saved to this path; otherwise, it is displayed.
+
+    Returns:
+        None
+    """
     fig, axis = plt.subplots()
     axis.set_title('Masliner adjusted result')
     axis.scatter(y1, y2, label='original')
@@ -181,13 +273,26 @@ def plot_masliner(y1, y2, adj, path=None):
         plt.savefig(path)
 
 
-def plot_normalize(df, f, path=None):
-    
+def plot_normalize(df, i, path=None):
+    """
+    Plots a comparison between original and normalized fluorescence arrays.
+
+    Assumes intensity data is arranged in a 2D grid by 'Column' and 'Row'.
+
+    Parameters:
+        df (pd.DataFrame): DataFrame returned from normalize().
+        i (str): Name of the original intensity column to compare.
+        path (str or None): If given, the plot is saved to this path; otherwise, it is displayed.
+
+    Returns:
+        None
+    """
+
     column = df['Column'].values
     row = df['Row'].values
     col_max, row_max = np.max(column), np.max(row)
 
-    y_arr = df[f].values.reshape(row_max, col_max)
+    y_arr = df[i].values.reshape(row_max, col_max)
     norm_arr = df['Norm'].values.reshape(row_max, col_max)
 
     k_formatter = lambda x, pos : f'{int(x/1000)}k' # Custom formatter: convert to thousands with 'k'
@@ -195,7 +300,7 @@ def plot_normalize(df, f, path=None):
     # Plots result
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
     arrays = [y_arr, norm_arr]
-    titles = [f, 'Normalized']
+    titles = [i, 'Normalized']
 
     for ax, arr, title in zip(axes, arrays, titles):
         im = ax.matshow(arr)

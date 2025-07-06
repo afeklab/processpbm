@@ -1,3 +1,8 @@
+'''
+The test_.py script is run by using the pytest command.
+The script is designed to be run in bash while the original PBM_analysis_suite_Sep2017.zip is located outside of the processpbm directory.
+'''
+
 import subprocess
 from os.path import join, expanduser # expand the tilde (~) character in a path string to the user's home directory. 
 from utils import *
@@ -13,6 +18,15 @@ lh = 40_000
 corners = [20, 245, 150, 416]
 
 def bash_unzip_suite(name):
+    """
+    Unzips the PBM analysis suite archive and organizes its contents.
+
+    Parameters:
+        name (str): Target name of the directory into which the archive will be extracted.
+
+    Returns:
+        None
+    """
     
     # Unzip PBM_analysis_suite
     # According to documentation: 
@@ -23,6 +37,18 @@ def bash_unzip_suite(name):
     subprocess.run('mv masliner.txt masliner.pl', shell=True, cwd=join(HOME, name))
 
 def test_maliner():
+    """
+    Tests the Python implementation of the Masliner against the reference Perl implementation for the two examples (version 1 and 2) provided in the original PBM_analysis_suite_Sep2017.
+
+    This function:
+    - Loads two GPR files per version.
+    - Performs Masliner correction in Python and Perl.
+    - Asserts exact agreement between the adjusted results.
+    - Plots a comparison figure for version 1.
+
+    Returns:
+        None
+    """
 
     bash_unzip_suite(PBM_SUITE_MASLINER)
     for version in [1, 2]:
@@ -74,6 +100,19 @@ def test_maliner():
     subprocess.run(f'rm -rf {join(HOME, PBM_SUITE_MASLINER)}', shell=True)
 
 def plot_corners(axis, corners, radius, row_max, col_max):
+    """
+    Plots the spatial boundaries used for corner constraints on a matplotlib axis.
+
+    Parameters:
+        axis (matplotlib.axes.Axes): Axis on which to draw the corner constraint lines.
+        corners (list): List of integers [upperleft, upperright, lowerleft, lowerright] defining corners lines.
+        radius (int): Radius used in the normalization window, affects boundary shape.
+        row_max (int): Maximum number of rows in the array.
+        col_max (int): Maximum number of columns in the array.
+
+    Returns:
+        None
+    """
 
     ul, ur, ll, lr = corners # upperleft, upperright, lowerleft, lowerright
 
@@ -97,14 +136,39 @@ def plot_corners(axis, corners, radius, row_max, col_max):
  
     for k in x_dict:    
         axis.plot(x_dict[k], y_dict[k], color='tab:green')
-def plot_window(axis, example):    
+
+def plot_window(axis, example):   
+    """
+    Visualizes the normalization window and center probe for a given example on a matplotlib axis.
+
+    Parameters:
+        axis (matplotlib.axes.Axes): Axis on which to plot the window.
+        example (pd.Series): A row from the normalized DataFrame containing 'Top', 'Bottom', 'Left', 'Right', 'Row', and 'Column'.
+
+    Returns:
+        None
+    """
+         
     for r in range(example['Top'] - 1, example['Bottom']):
         for c in range(example['Left'] - 1, example['Right']):
             axis.scatter(r, c, marker=',', color='tab:red', alpha=0.1, ec=None)
     axis.scatter(example['Row'], example['Column'], marker='o', color='tab:orange', s=15, ec='k')
 
 def test_normalize():
+    """
+    Tests the Python implementation of the Maslnormalization against the reference Perl implementation for the two examples (version 1 and 2) provided in the original PBM_analysis_suite_Sep2017.
 
+    This function:
+    - Extracts and formats test FASTA and GPR files.
+    - Runs the Python `normalize()` function with and without corner constraints.
+    - Runs the equivalent Perl normalization script.
+    - Asserts close numerical agreement with Perl (within 1e-9).
+    - Identifies differences introduced by omitting corner constraints.
+    - Plots array intensities and scatter comparisons for each version.
+
+    Returns:
+        None
+    """
 
     bash_unzip_suite(PBM_SUITE_NORMALIZE)
 

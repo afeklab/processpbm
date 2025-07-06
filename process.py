@@ -4,14 +4,14 @@ import argparse
 parser = argparse.ArgumentParser(prog='process', 
                                  description='Combining two PBM scans into one using liner regression (optional) and filtering out spatial correlation using a moving window',
                                 )
-parser.add_argument('-g1', '--gpr1', type=str,default=None, help='GPR file path (low intensity fluorscent scan in case of two scans provided)')
-parser.add_argument('-g2', '--gpr2', type=str, default=None, help='GPR file path (high intensity fluorscent scan in case of two scans provided)')
-parser.add_argument('-f', '--fasta', type=str, default=None, help='Fasta file path')
-parser.add_argument('-i', '--intensity_column', type=str, default=None, help='Column of fluorescent intensity to consider')
-parser.add_argument('-o', '--output', type=str, default=None, help='Output path - <dir path>/<file prefix>')
-parser.add_argument('-ll' , '--low_bound', type=int, default=200, help='Linear low-bound for Masliner')
-parser.add_argument('-lh', '--high_bound', type=int, default=40_000, help='Linear high-bound for Masliner')
-parser.add_argument('-r', '--radius', type=int, default=7, help='Normalization radius')
+parser.add_argument('-g1', '--gpr1', type=str, default=None, help='A path to a GPR file. If two GPR files are to be provided, this file is the low-intensity fluorescent scan one. Otherwise, the path directs to the single GPR file to be considered and the script will not perform Masliner.')
+parser.add_argument('-g2', '--gpr2', type=str, default=None, help='A path to a GPR file. If two GPR files are to be provided, this file is the high-intensity fluorescent scan one. Otherwise, the path can directs to the single GPR file to be considered and the script will not perform Masliner.')
+parser.add_argument('-f', '--fasta', type=str, default=None, help='A path to the fasta file. The normalization script considers only probes with a sequence provided in the fasta file and does not provide a normalized signal for any other (e.g., controls provided by the manufacturer). Moreover, the combinatorial file includes only probes with sequences provided in the Fasta file.')
+parser.add_argument('-i', '--intensity_column', type=str, default=None, help='The fluorescent intensity column in the GPR files to be considered.')
+parser.add_argument('-o', '--output', type=str, default=None, help='The path of output, in the form of <dir path>/<file prefix>.')
+parser.add_argument('-ll' , '--low_bound', type=int, default=200, help='The linear lower bound for Masliner. This is the low threshold of intensity to consider for the linear regression.')
+parser.add_argument('-lh', '--high_bound', type=int, default=40_000, help='The linear high bound for Masliner. This is the high threshold of intensity to consider for the linear regression.')
+parser.add_argument('-r', '--radius', type=int, default=7, help='The radius of the moving window is used in normalization. Use 0 to skip normalization.')
 args = parser.parse_args()
 
 gpr1_path = args.gpr1

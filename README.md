@@ -56,12 +56,12 @@ Agilent provides the Fasta file in the appropriate format for all designs.
 
 `-i` : str
 
-The fluorescent intensity column in the GPR files should be considered.
+The fluorescent intensity column in the GPR files to be considered.
 Note that in the original scripts, it is the median intensity subtracted by the background.
 
 `-o` : str
 
-The path of output is in the form of `<dir path>/<file prefix>`.
+The path of output, in the form of `<dir path>/<file prefix>`.
 
 
 `-ll` : int, optional
@@ -219,11 +219,11 @@ At the bottom, we scatter all normalized probe values by the Python script, with
 
 Upon using the `process.py`, you need to report:
 
-1. Raw probes' fluorescent intensity is `i (i.e., report which column in the GPRs is chosen to represent the signal).
+1. which column in the GPRs is chosen to represent the signal (determined by `i`).
 
-2. Different scans were combined using the Masliner functionality in Berger et al. (2009) with `ll` and `lh` values (i.e., write the values of the `ll` and `lh` values).
+2. "different scans were combined using the Masliner functionality in Berger et al. (2009) with `ll` and `lh` values" (i.e., write the values of the `ll` and `lh` values).
 
-3. Spatial correlation was removed by applying a moving radius `r` (write the radius values) window and multiplying each probe by the global to local median intensity ratio (excluding control probes from calculations).
+3. "spatial correlation was removed by applying a moving window of radius `r` probes (write the radius values) to calculate the local median and subsequently, multiplying each probe value by the global to local median intensity ratio (excluding control probes from calculations)".
 
 Of course, if you did not use Masliner, exclude 2. from the report.
 If you did not use normalization, exclude 3. from your report.
