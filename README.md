@@ -172,7 +172,6 @@ After that, it gets close to the linear range, for which we use the linear regre
 
 
 ![Alt text](figures/masliner_ver1.png)
-We note that the default values of `ll` and `lh` is set according to the example in the original documentation of `PBM_analysis_suite_Sep2017`.
  
 
 ## Normalization
