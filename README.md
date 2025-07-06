@@ -66,13 +66,13 @@ The path of output, in the form of `<dir path>/<file prefix>`.
 
 `-ll` : int, optional
 
-By default, 200.
+By default, 2,000 (same as in the original script).
 The linear lower bound for Masliner.
 This is the low threshold of intensity to consider for the linear regression.
 
 `-lh` : int, optional
 
-By default, 40,000.
+By default, 50,000 (lower than the original default).
 The linear high bound for Masliner.
 This is the high threshold of intensity to consider for the linear regression.
 
