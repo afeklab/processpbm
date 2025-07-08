@@ -1,6 +1,18 @@
 # Processing Protein Binding Microarray Data
 
-## Introduction
+* [Introduction](#introduction)
+* [Quick Start](#quick)
+    * [Arguments](#arguments)
+    * [Output](#output)
+    * [Example](#example)
+    * [Notes](#notes)
+* [Masliner](#masliner)
+* [Check Masliner Results](#check)
+* [Normalization](#normalization)
+* [How to Report](#how)
+* [Reference](#reference)
+
+## Introduction <a name="introduction"></a>
 
 The fluorescent signal of a Protein Binding Microarray (PBM) carries information about the binding specificities of a transcription factor (TF). 
 However, the signal does not explicitly expose the binding specificity.
@@ -18,7 +30,7 @@ Recall that given a design with the probes being randomly distributed over the a
 Spatial correlation in the signal indicates some physical source in the array that interferes with the signal/fluorophore solution, which the script means to remove by applying a moving window, and dividing each probe by its local median of the window (see normalization section).
 
 
-## Quick Start
+## Quick Start<a name="quick"></a>
 
 1. Make sure your Python environment contains the installed Numpy, Pandas, Matplotlib, and Scipy packages.
 
@@ -35,7 +47,7 @@ python process.py [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-o OUT
 4. Check results.
 Specifically, check Masliner image and ensure the points in the saturated are adjusted to the extrapolated range (see Check Masliner Results).
 
-### Arguments
+### Arguments<a name="arguments"></a>
 
 `-g1` : str, optional if `g2` is provided
 
@@ -85,7 +97,7 @@ By default, 7.
 The radius of the moving window is used in normalization.
 Use 0 to skip normalization.
 
-### Output
+### Output<a name="output"></a>
 
 The script saves multiple files in the directory and prefixes the file name provided in the output path argument.
 The following are the file suffixes and their descriptions:
@@ -131,13 +143,13 @@ $^†$ - if normalization was performed.
 
 
 
-### Example
+### Example<a name="example"></a>
 
 ```
 python process.py -g1 './data/488nm_800_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr' -g2 './data/488nm_1000_80_1-KLF3LC_2-KLF3HC_3-SP1LC_4-SP1HC_5-IRF1_13.6.24_2-5.gpr' -f 'data/086902_D_Fasta_20220417.txt' -i 'F488 Median' -o './data/KLFLC'
 ```
 
-### Notes
+### Notes<a name="notes"></a>
 
 
 If Masliner is used before normalization, normalization is over the Adj values.
@@ -146,7 +158,7 @@ If disabling Masliner (by providing a single GPR file), normalization is over th
 One can use the script without Masliner and without normalization by providing a single GPR and setting the radius to 0.
 In that case, the script only merges the Fasta file to the GPR and provides the corresponding "processed" and combinatorial file.
 
-## Masliner
+## Masliner<a name="masliner"></a>
 
 The scanner yields 16-bit images, i.e., the image uses 16 bits ($2^{16}=65,536$ unique values) to represent each pixel's intensity.
 This information capacity may not be sufficient to capture the signal of TF specific binding at high resolution.
@@ -176,7 +188,7 @@ After that, it gets close to the linear range, for which we use the linear regre
 
 ![Alt text](figures/masliner_ver1.png)
 
-## Check Masliner Results
+## Check Masliner Results<a name="check"></a>
 
 Ideally, one needs to increase `lh` as much as possible to get as many signal-carrying points for the regression.
 Generally, starting with the default value of 50,000 is a good practice.
@@ -186,10 +198,10 @@ For example, in the following Masliner result image (data from `PBM_analysis_sui
 
 ![Alt text](figures/masliner_ver1_high_lh.png)
 
-Therefore, we would use a lower `lh`, for example, 50,000, to get the results as shown in the previous section.
+Therefore, we would use a lower `lh`, to get the results as shown in the previous section.
 The reason to avoid such cases is that points in the saturated ranges participate in the linear regression and bias it toward lower slopes.
 
-## Normalization
+## Normalization<a name="normalization"></a>
 
 Most of our designs contain the probe shuffled in the 2-diemnsional space of the array.
 Therefore, we expect no spatial correlation between the probe values.
@@ -230,7 +242,7 @@ At the bottom, we scatter all normalized probe values by the Python script, with
 
 ![Alt text](figures/norm_ver1.png)
 
-## How to Report 
+## How to Report <a name="how"></a>
 
 Upon using the `process.py`, you need to report:
 
@@ -243,6 +255,6 @@ Upon using the `process.py`, you need to report:
 Of course, if you did not use Masliner, exclude 2. from the report.
 If you did not use normalization, exclude 3. from your report.
 
-## Reference
+## Reference<a name="reference"></a>
 
 Berger, M. F., & Bulyk, M. L. (2009). Universal protein-binding microarrays for the comprehensive characterization of the DNA-binding specificities of transcription factors. Nature protocols, 4(3), 393-411r
