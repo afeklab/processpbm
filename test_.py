@@ -95,6 +95,18 @@ def test_maliner():
             axis.legend()
             plt.savefig(f'figures/masliner_ver{version}.png', dpi=300, bbox_inches='tight')
 
+            # Run and plot again with a different threshold to show the effect of high lh
+            fig, axis = plt.subplots(figsize=(6, 3))
+            axis.set_title('Masliner adjusted result')
+            axis.scatter(y1, y2, label='original')
+            axis.scatter(y1, masliner(y1, y2, ll, 60_000)[0], label='adjusted')
+            axis.set_xlabel('Low-scan fluorescent intensity')
+            axis.set_ylabel('High-scan fluorescent intensity')
+            axis.legend()
+            plt.savefig(f'figures/masliner_ver{version}_high_lh.png', dpi=300, bbox_inches='tight')
+
+
+
         # Remove files
         subprocess.run('rm -rf Temp_masliner', shell=True)
     subprocess.run(f'rm -rf {join(HOME, PBM_SUITE_MASLINER)}', shell=True)

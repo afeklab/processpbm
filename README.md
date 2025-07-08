@@ -30,8 +30,11 @@ cd processpbm
 3. Run:
 ```
 python process.py [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-o OUTPUT] [-ll LOW_BOUND] [-lh HIGH_BOUND] [-r RADIUS] 
-
 ```
+
+4. Check results.
+Specifically, check Masliner image and ensure the points in the saturated are adjusted to the extrapolated range (see Check Masliner Results).
+
 ### Arguments
 
 `-g1` : str, optional if `g2` is provided
@@ -172,7 +175,19 @@ After that, it gets close to the linear range, for which we use the linear regre
 
 
 ![Alt text](figures/masliner_ver1.png)
- 
+
+## Check Masliner Results
+
+Ideally, one needs to increase `lh` as much as possible to get as many signal-carrying points for the regression.
+Generally, starting with the default value of 50,000 is a good practice.
+However, **if some points in the saturated range are not adjusted to the extrapolated one, you must decrease** `lh`.
+For example, in the following Masliner result image (data from `PBM_analysis_suite_Sep2017`, Berger et al., 2009) `lh`=60,000, which is too high as you can see several points in the saturation range not to be adjusted to the extrapolated one:
+
+
+![Alt text](figures/masliner_ver1_high_lh.png)
+
+Therefore, we would use a lower `lh`, for example, 50,000, to get the results as shown in the previous section.
+The reason to avoid such cases is that points in the saturated ranges participate in the linear regression and bias it toward lower slopes.
 
 ## Normalization
 
@@ -215,7 +230,7 @@ At the bottom, we scatter all normalized probe values by the Python script, with
 
 ![Alt text](figures/norm_ver1.png)
 
-## How to report 
+## How to Report 
 
 Upon using the `process.py`, you need to report:
 
