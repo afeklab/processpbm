@@ -1,15 +1,15 @@
 # Processing Protein Binding Microarray Data
 
 * [Introduction](#introduction)
-* [Quick Start](#quick)
+* [Quick Start](#quick-start)
     * [Arguments](#arguments)
     * [Output](#output)
     * [Example](#example)
     * [Notes](#notes)
 * [Masliner](#masliner)
-* [Check Masliner Results](#check)
+* [Check Masliner Results](#check-masliner-results)
 * [Normalization](#normalization)
-* [How to Report](#how)
+* [How to Report](#how-to-report)
 * [Reference](#reference)
 
 ## Introduction <a name="introduction"></a>
@@ -22,15 +22,15 @@ We designed the scripts to perform the same functionalities as provided original
 We reimplemented the Masliner and spatial-normalization functions, removed the features we do not usually perform, and made the code easier to read/utilize.
 
 Briefly, masliner functionality aims to combine two scans (of the same array, scanned one after the other) of different dynamic range (by adjusting different gains).
-The combination extends the information and avoids saturation/low detection deficiencies (see Masliner section).
+The combination extends the information and avoids saturation/low detection deficiencies (see [Masliner](#masliner)).
 One can skip it by providing a single GPR file.
 
 The normalization functionality aims to remove spatial correlation in the scan.
 Recall that given a design with the probes being randomly distributed over the array, we expect the signal to behave randomly in space.
-Spatial correlation in the signal indicates some physical source in the array that interferes with the signal/fluorophore solution, which the script means to remove by applying a moving window, and dividing each probe by its local median of the window (see normalization section).
+Spatial correlation in the signal indicates some physical source in the array that interferes with the signal/fluorophore solution, which the script means to remove by applying a moving window, and dividing each probe by its local median of the window (see [Normalization](#normalization)).
 
 
-## Quick Start<a name="quick"></a>
+## Quick Start <a name="quick-start"></a>
 
 1. Make sure your Python environment contains the installed Numpy, Pandas, Matplotlib, and Scipy packages.
 
@@ -45,9 +45,9 @@ python process.py [-g1 GPR1] [-g2 GPR2] [-f FASTA] [-i INTENSITY_COLUMN] [-o OUT
 ```
 
 4. Check results.
-Specifically, check Masliner image and ensure the points in the saturated are adjusted to the extrapolated range (see Check Masliner Results).
+Specifically, check Masliner image and ensure the points in the saturated are adjusted to the extrapolated range (see [Check Masliner Results](#check-masliner-results)).
 
-### Arguments<a name="arguments"></a>
+### Arguments <a name="arguments"></a>
 
 `-g1` : str, optional if `g2` is provided
 
@@ -188,7 +188,7 @@ After that, it gets close to the linear range, for which we use the linear regre
 
 ![Alt text](figures/masliner_ver1.png)
 
-## Check Masliner Results<a name="check"></a>
+## Check Masliner Results<a name="check-masliner-results"></a>
 
 Ideally, one needs to increase `lh` as much as possible to get as many signal-carrying points for the regression.
 Generally, starting with the default value of 50,000 is a good practice.
@@ -242,7 +242,7 @@ At the bottom, we scatter all normalized probe values by the Python script, with
 
 ![Alt text](figures/norm_ver1.png)
 
-## How to Report <a name="how"></a>
+## How to Report<a name="how-to-report"></a>
 
 Upon using the `process.py`, you need to report:
 
