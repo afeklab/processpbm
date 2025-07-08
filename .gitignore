@@ -1,14 +1,3 @@
-# general file patterns to ignore
-*.csv
-*.txt
-*.pwm
-*.npy
-*.pdf
-*.gpr
-*.Identifier
-*.pyc
-*.tdt
-*.zip
-*.gz
-
-data
+__pycache__
+.pytest_cache
+data/KLFLC_*
