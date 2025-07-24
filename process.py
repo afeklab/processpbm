@@ -108,7 +108,7 @@ else:
     mask_comb = mask_flags * mask_seq
 
 # Create combinatorial file
-df_comb = df[['Sequence', final_col]][mask_comb]
+df_comb = df[[final_col, 'Sequence']][mask_comb]
 df_comb.sort_values(final_col, ascending=False, inplace=True)
 df_comb.to_csv(path_combinatorial, header=False, index=False, sep='\t')
 
