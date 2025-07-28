@@ -81,6 +81,9 @@ def masliner(y1, y2, ll=200, lh=40_000):
     # Mask range for linear regression and perform linear regression (PerformStraightRegression in original)
     mask = (y1 >= ll) * (y2 >= ll) * (y1 <= lh) * (y2 <= lh)
     reg_num = np.sum(mask)
+    if reg_num <= 1:
+        raise Exception('Insufficient number of probes in the regression range between lh and hh --- one of the scans is too low/complete saturated')
+    
     slope, intercept, r, p, se = linregress(y1[mask], y2[mask])
     linreg_pred = (y1 * slope + intercept + 0.5).astype(int) # Round to integers (PerformAdjustment in original)
     adj = np.where(y2 > lh, linreg_pred, y2)
