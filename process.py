@@ -37,7 +37,7 @@ s += f'Radius = {radius}\n\n'
 
 
 if output == None:
-    raise 'No output path' 
+    raise Exception('No output path')
 path_masliner_png = output + '_masliner.png'
 path_normalize_png = output + '_normalize.png'
 path_processed_csv = output + '_processed.csv'
@@ -48,7 +48,7 @@ is_masliner = gpr1_path != None and gpr2_path != None
 is_norm = radius > 0
 
 if gpr1_path == None and gpr2_path == None:
-    raise 'Must have at least a single GPR file provided'
+    raise Exception('Must have at least a single GPR file provided')
 
 elif is_masliner:
 
