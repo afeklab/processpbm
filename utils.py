@@ -227,7 +227,13 @@ def normalize(df, i='Adj', radius=7, custom_mask=True, corners=[]):
         
         y_window = y_arr[t - 1: b, l - 1: r].flatten()
         mask_window = mask_arr[t - 1: b, l - 1: r].flatten()
-        median_local[i] = np.median(y_window[mask_window])
+
+        # If window is not empty
+        if np.sum(mask_window) > 0:
+            median_local[i] = np.median(y_window[mask_window])
+        else:
+            median_local[i] = np.nan
+
         size[i] = np.sum(mask_window)
 
     # If a probe has a window greater than the half of the maximum, has a sequence and appropriate flag, use normalized value, otherwise, use original
