@@ -223,7 +223,7 @@ def normalize(df, i='Adj', radius=7, custom_mask=True, corners=[]):
     median_local = np.empty(len(df))
     size = np.empty(len(df))
 
-    for i, t, b, l, r in zip(range(len(df)), top, bottom, left, right):# Note that running an index, take row from the dataframe, convert it to nu,py values at each iteration is slow
+    for i, t, b, l, r in zip(range(len(df)), top, bottom, left, right): # This implementation is faster than repeatedly slicing rows from the DataFrame 
         
         y_window = y_arr[t - 1: b, l - 1: r].flatten()
         mask_window = mask_arr[t - 1: b, l - 1: r].flatten()
