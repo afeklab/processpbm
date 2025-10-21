@@ -91,7 +91,9 @@ else:
 
 # Merge df with fasta sequences (nan for rows with no correspondings in fasta)
 df = pd.merge(df, read_fasta(fasta_path), how='left', on='ID')
- 
+if len(df) == 0:
+    raise Exception('Fasta-GPR merging issue. Check compatibility of fasta file with GPR.')
+
 if is_norm: 
     
     # Perform normalization
