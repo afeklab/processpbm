@@ -15,11 +15,11 @@
 ## Introduction <a name="introduction"></a>
 
 The fluorescent signal of a Protein Binding Microarray (PBM) carries information about the binding specificities of a transcription factor (TF). 
-However, the signal does not explicitly expose the binding specificity.
+But the signal does not explicitly expose the binding specificity.
 Often, experimental sources in the assay alter or truncate the signal.
-The Python scripts here aim to remove such experimental variations, leaving the specific-binding signal from a PBM.
-We designed the scripts to perform the same functionalities as provided originally in `PBM_analysis_suite_Sep2017` Perl scripts (Berger et al., 2009), which can be downloaded from the Bulyk lab website.
-We reimplemented the Masliner and spatial-normalization functions, removed the features we do not usually perform, and made the code easier to read/utilize.
+The Python scripts here aim to extract the specific-binding signal from a PBM by removing any unrelated sources.
+The scripts perform the same functionalities as provided originally in `PBM_analysis_suite_Sep2017` Perl scripts (Berger et al., 2009; can be downloaded from the Bulyk lab website).
+We reimplemented the Masliner and spatial-normalization functions by removing the features we do not usually perform and made the code easier to read/utilize.
 
 Briefly, masliner functionality aims to combine two scans (of the same array, scanned one after the other) of different dynamic range (by adjusting different gains).
 The combination extends the information and avoids saturation/low detection deficiencies (see [Masliner](#masliner)).
@@ -27,7 +27,7 @@ One can skip it by providing a single GPR file.
 
 The normalization functionality aims to remove spatial correlation in the scan.
 Recall that given a design with the probes being randomly distributed over the array, we expect the signal to behave randomly in space.
-Spatial correlation in the signal indicates some physical source in the array that interferes with the signal/fluorophore solution, which the script means to remove by applying a moving window, and dividing each probe by its local median of the window (see [Normalization](#normalization)).
+Spatial correlation in the signal indicates some physical source in the array that interferes with the signal/fluorophore solution, which the script means to remove by applying a moving window (see [Normalization](#normalization)).
 
 
 ## Quick Start <a name="quick-start"></a>
@@ -168,22 +168,23 @@ In that case, the script only merges the Fasta file to the GPR and provides the 
 
 The scanner yields 16-bit images, i.e., the image uses 16 bits ($2^{16}=65,536$ unique values) to represent each pixel's intensity.
 This information capacity may not be sufficient to capture the signal of TF specific binding at high resolution.
-For example, in some cases, one can observe the saturation of the signal.
+For example, in some cases, you will observe the saturation of the signal.
 According to the GenePix manual (2017), the reason may be an overload of photons to be processed and converted into an electric signal, namely, the signal is above the dynamic range of the scan.
 
-One can scan in a shifted dynamic range to capture a saturated signal in its complete informative form (while losing the low signal to underdetection).
-In that case, one has two scans, each in a different dynamic range, holding specific binding information.
-Note that to change the dynamic range, the manual recommends setting the gain of the scan at different values--- controlling the detector's sensitivity (as opposed to Berger et al., 2009, which claims to change the power of the laser).
-The gain values are between 100 and 1000.
-By changing the gain between 400 and 1000, unless the signal is underdetected/saturated, the effect of the gain is supposed to be linear.
+To avoid saturation, you can scan in a shifted dynamic range to capture a saturated signal in its complete informative form (while losing the low signal to underdetection).
+In that case, you have two scans, each in a different dynamic range, holding specific binding information.
+Note that to change the dynamic range, the manual recommends setting the gain of the scan at different values---controlling the detector's sensitivity (as opposed to Berger et al., 2009, which claims to change the power of the laser).
+You can set the gain values between 100 and 1000.
+However, note that only by changing the gain between 400 and 1000, unless the signal is underdetected/saturated, the effect of the gain is supposed to be linear.
+**Thus, set gain only between 400 to 1000.**
 
 The two scans must be combined into a single format.
 Masliner combines two scans of different dynamic ranges by assuming the above linearity assumption.
-To use it properly, one must determine and input the linear range for which the two scans are linearly correlated.
-The two threshold arguments, `ll` and `lh`, set the lower and upper bounds of the linear range by the following masking.
+To use it properly, you must determine the linear range for which the two scans are linearly correlated.
+The two threshold arguments, `ll` and `lh` (low and high, respectively).
 If a probe holds the intensity values of $y_1$ and $y_2$ according to the low and high scan provided (respectively), then we will consider it for the linear regression fitting if `ll`$<y_1, y_2<$`lh`.
 After fitting the linear regression line, the adjusted values are simply the high scan (with the potential saturation), which holds the robust information for the low-intensity probes.
-However, for all values of the high scan above `lh`, the adjusted values are calculated according to the linear regression line, which extrapolates the saturation according to the information provided in the low scan.
+However, for probes with high scan values above `lh`, the adjusted values are calculated according to the linear regression line, which extrapolates the saturation according to the information provided in the low scan.
 
 In the following image (data from `PBM_analysis_suite_Sep2017`, Berger et al., 2009), the blue points are the scatter plot of low vs. high gain scan (low is the x-axis).
 The dashed square is the domain of points used for the linear regression according to the `ll` and `lh` points.
@@ -198,7 +199,7 @@ After that, it gets close to the linear range, for which we use the linear regre
 
 Ideally, one needs to increase `lh` as much as possible to get as many signal-carrying points for the regression.
 Generally, starting with the default value of 50,000 is a good practice.
-However, **if some points in the saturated range are not adjusted to the extrapolated one, you must decrease** `lh`.
+However, **if some points in the saturated range are not adjusted to the extrapolated one, you must reduce** `lh`.
 For example, in the following Masliner result image (data from `PBM_analysis_suite_Sep2017`, Berger et al., 2009) `lh`=60,000, which is too high as you can see several points in the saturation range not to be adjusted to the extrapolated one:
 
 
@@ -254,12 +255,9 @@ Upon using the `process.py`, you need to report:
 
 1. which column in the GPRs is chosen to represent the signal (determined by `i`).
 
-2. "different scans were combined using the Masliner functionality in Berger et al. (2009) with `ll` and `lh` values" (i.e., write the values of the `ll` and `lh` values).
+2. about the masliner functionality (if you used it), e.g., "different scans were combined using the Masliner functionality in Berger et al. (2009) with `ll` and `lh` values" (i.e., write the values of the `ll` and `lh`).
 
-3. "spatial correlation was removed by applying a moving window of radius `r` probes (write the radius values) to calculate the local median and subsequently, multiplying each probe value by the global to local median intensity ratio (excluding control probes from calculations)".
-
-Of course, if you did not use Masliner, exclude 2. from the report.
-If you did not use normalization, exclude 3. from your report.
+3. about the normalization functionality (if you used it), e.g., "spatial correlation was removed by applying a moving window of radius `r` probes (write the radius values) to calculate the local median and subsequently, multiplying each probe value by the global to local median intensity ratio (excluding control probes from calculations)".
 
 ## Reference<a name="reference"></a>
 
