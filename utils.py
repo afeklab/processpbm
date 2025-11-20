@@ -18,7 +18,7 @@ def read_gpr(path, i):
     Returns:
         gpr (pd.DataFrame): DataFrame containing the selected columns: COLUMNS + [i].
     """
-    
+    found = False 
     # Get the index of the header of the GPR without reading the entire file    
     with open(path, 'r') as file:
 
@@ -28,10 +28,14 @@ def read_gpr(path, i):
             
             # If all columns in the line
             if np.all([c in line for c in COLUMNS + [i]]):
+                found = True
                 break
             else: 
                 header_i += 1
     
+    if not found:
+        raise 'Intensity column not found'
+
     # Read and return GPR DataFrames using the header index
     gpr = pd.read_csv(path, sep='\t', header=header_i)[COLUMNS + [i]]
     gpr['Name'] = gpr['Name'].astype(str)
@@ -52,6 +56,13 @@ def read_fasta(path):
     """
     fasta = pd.read_csv(path, lineterminator='>', header=None)[0] # Select the single colum to get a Series
     fasta = fasta.str.extract(r'(?P<ID>.*)\n(?P<Sequence>.*)\n') # Extract ID and sequence using regular expressions (see function documentation for explanation)
+    
+    # Check if there are \r at the end of entries (sometimes happens when creating Fasta on Windows)
+    for c in ['ID', 'Sequence']:
+        vals = fasta[c].values.astype(str)        
+        if np.all(np.array([v[-2:] for v in vals]) == '\r'):
+            fasta[c] = [v[:-2] for v in vals]
+
     return fasta
 
 def masliner(y1, y2, ll=200, lh=40_000):
