@@ -58,7 +58,7 @@ elif is_masliner:
 
     # Assert that the two GPRs are of the same layout and the same flags
     if not np.all(gpr1[COLUMNS] == gpr2[COLUMNS]):
-        raise 'Two GPRs are not of the same layout'
+        raise 'Two GPRs are not of the same layout. Check if both GPRs share the same flag column.'
 
     # Perform masliner
     y1, y2 = gpr1[intensity_col].values, gpr2[intensity_col].values
