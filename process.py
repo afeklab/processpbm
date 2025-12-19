@@ -90,8 +90,9 @@ else:
     col_to_norm = intensity_col
 
 # Merge df with fasta sequences (nan for rows with no correspondings in fasta)
+org_len = len(df)
 df = pd.merge(df, read_fasta(fasta_path), how='left', on='ID')
-if len(df) == 0:
+if len(df) == 0 or len(df) > org_len:
     raise Exception('Fasta-GPR merging issue. Check compatibility of fasta file with GPR.')
 
 if is_norm: 
