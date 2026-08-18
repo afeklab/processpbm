@@ -37,7 +37,7 @@ def read_gpr(path, i):
         raise 'Intensity column not found'
 
     # Read and return GPR DataFrames using the header index
-    gpr = pd.read_csv(path, sep='\t', header=header_i)[COLUMNS + [i]]
+    gpr = pd.read_csv(path, sep='\t', header=header_i, usecols=COLUMNS + [i], low_memory=False)
     gpr['Name'] = gpr['Name'].astype(str)
     gpr['ID'] = gpr['ID'].astype(str)
     return gpr
