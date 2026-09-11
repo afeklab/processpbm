@@ -173,7 +173,7 @@ According to the GenePix manual (2017), the reason may be an overload of photons
 
 To avoid saturation, you can scan in a shifted dynamic range to capture a saturated signal in its complete informative form (while losing the low signal to underdetection).
 In that case, you have two scans, each in a different dynamic range, holding specific binding information.
-Note that to change the dynamic range, the manual recommends setting the gain of the scan at different values---controlling the detector's sensitivity (as opposed to Berger et al., 2009, which claims to change the power of the laser).
+Note that to change the dynamic range, the manual recommends setting the gain of the scan at different values---controlling the detector's sensitivity.
 You can set the gain values between 100 and 1000.
 However, note that only by changing the gain between 400 and 1000, unless the signal is underdetected/saturated, the effect of the gain is supposed to be linear.
 **Thus, set gain only between 400 to 1000.**
